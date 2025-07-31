@@ -1,0 +1,80 @@
+name: azaharplus-emulator
+base: core24
+version: '2122-A'
+platforms:
+  amd64:
+    build-on: [amd64]
+    build-for: [amd64]
+summary: Open-source 3DS emulator project based on Citra.
+description: |
+  Azahar is an open-source 3DS emulator based on Citra.
+
+  This project was born as a merge between PabloMK7's Citra fork and Lime3DS.
+
+  Our mission is to create the definitive platform for future development of Citra, a discontinued 3DS emulator
+
+grade: stable
+confinement: strict
+
+apps:
+  azaharplus-emulator:
+    command: usr/bin/azahar
+    desktop: usr/share/applications/azahar.desktop
+    extensions:
+      - gnome
+    plugs:
+      - home
+      - removable-media
+      - gtk-3-themes
+      - icon-themes
+      - desktop
+      - desktop-legacy
+      - x11
+      - opengl
+      - wayland
+      - audio-playback
+      - joystick
+      - screen-inhibit-control
+      - network
+
+parts:
+  azaharplus-emulator:
+    plugin: dump
+    source: .
+    build-packages:
+      - wget
+    override-build: |
+      craftctl default
+      pwd
+      ls -l
+      mkdir -p $CRAFT_PART_INSTALL/
+      wget https://github.com/Kyuyrii/AzaharPlus-emulator-Snap/releases/download/AZAHAR_PLUS_2122_A/azahar.AppImage
+      chmod +x azahar.AppImage
+      ./azahar.AppImage --appimage-extract
+      mv -f squashfs-root/usr $CRAFT_PART_INSTALL/
+      sed -i 's|Icon=org.azahar_emu.Azahar|Icon=${SNAP}/usr/share/icons/hicolor/scalable/apps/org.azahar_emu.Azahar.svg|' $CRAFT_PART_INSTALL/usr/share/applications/azahar.desktop
+      sed -i 's|Exec=azahar %f|Exec=${SNAP}/usr/bin/azahar %f|' $CRAFT_PART_INSTALL/usr/share/applications/azahar.desktop
+      sed -i 's|TryExec=azahar|TryExec=${SNAP}/usr/bin/azahar|' $CRAFT_PART_INSTALL/usr/share/applications/azahar.desktop
+    prime:
+      - usr
+
+  azaharplus-emulator-room:
+    after: [azaharplus-emulator]
+    plugin: dump
+    source: .
+    build-packages:
+      - wget
+    override-build: |
+      craftctl default
+      pwd
+      ls -l
+      mkdir -p $CRAFT_PART_INSTALL/
+      wget https://github.com/Kyuyrii/AzaharPlus-emulator-Snap/releases/download/AZAHAR_PLUS_2122_A/azahar-room.AppImage
+      chmod +x azahar-room.AppImage
+      ./azahar-room.AppImage --appimage-extract
+      mv -f squashfs-root/usr $CRAFT_PART_INSTALL/
+      sed -i 's|Icon=org.azahar_emu.Azahar|Icon=${SNAP}/usr/share/icons/hicolor/scalable/apps/org.azahar_emu.Azahar.svg|' $CRAFT_PART_INSTALL/usr/share/applications/azahar-room.desktop
+      sed -i 's|Exec=azahar-room %f|Exec=${SNAP}/usr/bin/azahar-room %f|' $CRAFT_PART_INSTALL/usr/share/applications/azahar-room.desktop
+      sed -i 's|TryExec=azahar-room|TryExec=${SNAP}/usr/bin/azahar-room|' $CRAFT_PART_INSTALL/usr/share/applications/azahar-room.desktop
+    prime:
+      - usr
