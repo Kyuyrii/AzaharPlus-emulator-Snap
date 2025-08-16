@@ -40,16 +40,13 @@ plugs:
     private: true
 
 parts:
-  azaharplus-emulator:
+  azaharplus:
     plugin: cmake
     source: https://github.com/AzaharPlus/AzaharPlus.git
     source-tag: AZAHAR_PLUS_2122_A
     build-packages:
       - libsdl2-dev
       - spirv-tools
-    stage-packages:
-      - libsdl2-2.0-0
-      - libdecor-0-0
     cmake-parameters:
       - -DCMAKE_BUILD_TYPE=Release
       - -DCMAKE_INSTALL_PREFIX=/usr/games
@@ -61,8 +58,17 @@ parts:
       - -DUSE_SYSTEM_SDL2=ON
     override-build: |
       craftctl default
-      sed -i 's|Name=Azahar|Name=AzaharPlus|' $CRAFT_PART_INSTALL/usr/games/share/applications/org.azahar_emu.Azahar.desktop
+      sed -i 's|Name=Azahar|Name=AzaharPlus [NyKyu]|' $CRAFT_PART_INSTALL/usr/games/share/applications/org.azahar_emu.Azahar.desktop
       sed -i 's|Icon=org.azahar_emu.Azahar|Icon=${SNAP}/usr/games/share/icons/hicolor/scalable/apps/org.azahar_emu.Azahar.svg|' $CRAFT_PART_INSTALL/usr/games/share/applications/org.azahar_emu.Azahar.desktop
       sed -i 's|TryExec=azahar|TryExec=${SNAP}/usr/games/bin/azahar|' $CRAFT_PART_INSTALL/usr/games/share/applications/org.azahar_emu.Azahar.desktop
-      sed -i 's|Exec=azahar %f|Exec=azaharplus-emulator %f|' $CRAFT_PART_INSTALL/usr/games/share/applications/org.azahar_emu.Azahar.desktop
+      sed -i 's|Exec=azahar %f|Exec=${SNAP}/usr/games/bin/azahar %f|' $CRAFT_PART_INSTALL/usr/games/share/applications/org.azahar_emu.Azahar.desktop
 
+  dependencies:
+    after: [azaharplus]
+    plugin: nil
+    stage-packages:
+      - libsdl2-2.0-0
+      - libdecor-0-0
+    prime:
+      - usr/lib/x86_64-linux-gnu/libdecor-0.so*
+      - usr/lib/x86_64-linux-gnu/libSDL2-2.0.so*
