@@ -1,0 +1,82 @@
+name: azaharplus-emulator
+base: core24
+version: '2123.2-A'
+platforms:
+  amd64:
+    build-on: [amd64]
+    build-for: [amd64]
+summary: Open-source 3DS emulator project based on Citra.
+description: |
+  AzaharPlus is a fork of the Azahar 3DS emulator that restores some features.
+
+  Each version is the same as the corresponding version of Azahar exept for these features:
+
+  * Support of 3DS files. If a file works with earlier Citra forks, it works with AzaharPlus.
+  * Ability to download system files from official servers. No need for an actual 3DS.
+grade: stable
+confinement: strict
+
+apps:
+  azaharplus-emulator:
+    command: usr/games/bin/azahar
+    desktop: usr/games/share/applications/org.azahar_emu.Azahar.desktop
+    common-id: org.azahar_emu.Azahar
+    extensions: [kde-neon-6]
+    plugs:
+      - unity7
+      - screen-inhibit-control
+      - audio-playback
+      - network
+      - network-bind
+      - home
+      - removable-media
+      - mount-observe
+      - joystick
+      - bluez
+      - udisks2
+
+plugs:
+  shared-memory:
+    private: true
+
+package-repositories:
+  - type: apt
+    url: http://origin.archive.neon.kde.org/user
+    suites: [noble]
+    components: [main]
+    architectures: [amd64]
+    key-id: 444DABCF3667D0283F894EDDE6D4736255751E5D
+
+parts:
+  azaharplus:
+    plugin: cmake
+    source: https://github.com/AzaharPlus/AzaharPlus.git
+    source-tag: AZAHAR_PLUS_2123_2_A
+    build-packages:
+      - libsdl2-dev
+      - spirv-tools
+    cmake-parameters:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DCMAKE_INSTALL_PREFIX=/usr/games
+      - -DCMAKE_C_COMPILER=clang
+      - -DCMAKE_CXX_COMPILER=clang++
+      - -DCMAKE_LINKER=lld
+      - -DENABLE_QT_TRANSLATION=ON
+      - -DUSE_DISCORD_PRESENCE=OFF
+      - -DUSE_SYSTEM_SDL2=ON
+    override-build: |
+      craftctl default
+      sed -i 's|Name=Azahar|Name=AzaharPlus [NyKyu]|' $CRAFT_PART_INSTALL/usr/games/share/applications/org.azahar_emu.Azahar.desktop
+      sed -i 's|Icon=org.azahar_emu.Azahar|Icon=${SNAP}/usr/games/share/icons/hicolor/scalable/apps/org.azahar_emu.Azahar.svg|' $CRAFT_PART_INSTALL/usr/games/share/applications/org.azahar_emu.Azahar.desktop
+      sed -i 's|TryExec=azahar|TryExec=${SNAP}/usr/games/bin/azahar|' $CRAFT_PART_INSTALL/usr/games/share/applications/org.azahar_emu.Azahar.desktop
+      sed -i 's|Exec=azahar %f|Exec=${SNAP}/usr/games/bin/azahar %f|' $CRAFT_PART_INSTALL/usr/games/share/applications/org.azahar_emu.Azahar.desktop
+
+  dependencies:
+    after: [azaharplus]
+    plugin: nil
+    stage-packages:
+      - libsdl2-2.0-0
+      - libdecor-0-0
+    prime:
+      - usr/lib/x86_64-linux-gnu/libdecor-0.so*
+      - usr/lib/x86_64-linux-gnu/libSDL2-2.0.so*
