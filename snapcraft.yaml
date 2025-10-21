@@ -1,6 +1,6 @@
 name: azaharplus-emulator
 base: core24
-version: '2123.2-A'
+version: '2123_3_A'
 platforms:
   amd64:
     build-on: [amd64]
@@ -68,7 +68,7 @@ parts:
   azaharplus:
     plugin: cmake
     source: https://github.com/AzaharPlus/AzaharPlus.git
-    source-tag: AZAHAR_PLUS_2123_2_A
+    source-tag: AZAHAR_PLUS_$SNAPCRAFT_PROJECT_VERSION
     build-packages:
       - libsdl2-dev
       - spirv-tools
