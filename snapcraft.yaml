@@ -25,7 +25,6 @@ apps:
     desktop: usr/games/share/applications/org.azahar_emu.Azahar.desktop
     common-id: org.azahar_emu.Azahar
     environment:
-      QT_QPA_PLATFORMTHEME: xdgdesktopportal
       LD_LIBRARY_PATH: $SNAP/lxqt-support/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$LD_LIBRARY_PATH
       QT_PLUGIN_PATH: $SNAP/lxqt-support/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/qt6/plugins:$QT_PLUGIN_PATH
     extensions: [kde-neon-6]
