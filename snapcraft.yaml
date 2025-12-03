@@ -18,19 +18,31 @@ description: |
   * Ability to download system files from official servers. No need for an actual 3DS.
 grade: stable
 confinement: strict
+compression: lzo
 
 apps:
   azaharplus-emulator:
-    command: usr/games/bin/azahar
-    desktop: usr/games/share/applications/org.azahar_emu.Azahar.desktop
+    command-chain:
+      - snap/command-chain/gpu-2404-wrapper
+      - snap/command-chain/desktop-launch6
+    command: usr/bin/azahar
+    desktop: usr/share/applications/org.azahar_emu.Azahar.desktop
     common-id: org.azahar_emu.Azahar
     environment:
+      SNAP_DESKTOP_RUNTIME: $SNAP/kf6
+      GTK_USE_PORTAL: "1"
+      QT_VERSION: "6"
+      QT_QPA_PLATFORM: xcb
       QT_QPA_PLATFORMTHEME: xdgdesktopportal
       LD_LIBRARY_PATH: $SNAP/lxqt-support/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$LD_LIBRARY_PATH
       QT_PLUGIN_PATH: $SNAP/lxqt-support/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/qt6/plugins:$QT_PLUGIN_PATH
-    extensions: [kde-neon-6]
     plugs:
+      - desktop
+      - desktop-legacy
       - unity7
+      - opengl
+      - wayland
+      - x11
       - screen-inhibit-control
       - audio-playback
       - network
@@ -42,7 +54,39 @@ apps:
       - bluez
       - udisks2
 
+hooks:
+  configure:
+    command-chain:
+      - snap/command-chain/hooks-configure-desktop
+
 plugs:
+  desktop:
+    mount-host-font-cache: false
+  gtk-2-themes:
+    interface: content
+    target: $SNAP/data-dir/themes
+    default-provider: gtk-common-themes
+  gtk-3-themes:
+    interface: content
+    target: $SNAP/data-dir/themes
+    default-provider: gtk-common-themes
+  icon-themes:
+    interface: content
+    target: $SNAP/data-dir/icons
+    default-provider: gtk-common-themes
+  sound-themes:
+    interface: content
+    target: $SNAP/data-dir/sounds
+    default-provider: gtk-common-themes
+  kf6-core24:
+    content: kf6-core24-all
+    interface: content
+    target: $SNAP/kf6
+    default-provider: kf6-core24
+  gpu-2404:
+    interface: content
+    target: $SNAP/gpu-2404
+    default-provider: mesa-2404
   shared-memory:
     private: true
   lxqt-support:
@@ -52,6 +96,16 @@ plugs:
     default-provider: lxqt-support
 
 layout:
+  /usr/share/X11:
+    symlink: $SNAP/kf6/usr/share/X11
+  /usr/share/qt6:
+    symlink: $SNAP/kf6/usr/share/qt6
+  /usr/share/libdrm:
+    bind: $SNAP/gpu-2404/libdrm
+  /usr/share/drirc.d:
+    symlink: $SNAP/gpu-2404/drirc.d
+  /etc/fonts:
+    bind: $SNAP/etc/fonts
   /usr/share/color-schemes:
     symlink: $SNAP/lxqt-support/usr/share/color-schemes
   /usr/share/Kvantum:
@@ -70,12 +124,22 @@ parts:
     plugin: cmake
     source: https://github.com/AzaharPlus/AzaharPlus.git
     source-tag: AZAHAR_PLUS_2123_3_A
+    build-snaps:
+      - kde-qt6-core24-sdk
+      - kf6-core24-sdk
     build-packages:
       - libsdl2-dev
       - spirv-tools
+    build-environment:
+      - PATH: /snap/kde-qt6-core24-sdk/current/usr/bin:/snap/kf6-core24-sdk/current/usr/bin${PATH:+:$PATH}
+      - XDG_DATA_DIRS: $CRAFT_STAGE/usr/share:/snap/kde-qt6-core24-sdk/current/usr/share:/snap/kf6-core24-sdk/current/usr/share:/usr/share${XDG_DATA_DIRS:+:$XDG_DATA_DIRS}
+      - XDG_CONFIG_HOME: $CRAFT_STAGE/etc/xdg:/snap/kde-qt6-core24-sdk/current/etc/xdg:/snap/kf6-core24-sdk/current/etc/xdg:/etc/xdg${XDG_CONFIG_HOME:+:$XDG_CONFIG_HOME}
+      - LD_LIBRARY_PATH: /snap/kde-qt6-core24-sdk/current/usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}:/snap/kde-qt6-core24-sdk/current/usr/lib:/snap/kf6-core24-sdk/current/usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}:/snap/kf6-core24-sdk/current/usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}/blas:/snap/kf6-core24-sdk/current/usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}/lapack:/snap/kf6-core24-sdk/current/usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}/libproxy:/snap/kf6-core24-sdk/current/usr/lib:$CRAFT_STAGE/usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}:$CRAFT_STAGE/usr/lib:$CRAFT_STAGE/lib/${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+      - CMAKE_PREFIX_PATH: $CRAFT_STAGE;/snap/kde-qt6-core24-sdk/current;/snap/kf6-core24-sdk/current;/usr${CMAKE_PREFIX_PATH:+;$CMAKE_PREFIX_PATH}
+      - CMAKE_FIND_ROOT_PATH: $CRAFT_STAGE;/snap/kde-qt6-core24-sdk/current;/snap/kf6-core24-sdk/current;/usr${CMAKE_FIND_ROOT_PATH:+;$CMAKE_FIND_ROOT_PATH}
     cmake-parameters:
       - -DCMAKE_BUILD_TYPE=Release
-      - -DCMAKE_INSTALL_PREFIX=/usr/games
+      - -DCMAKE_INSTALL_PREFIX=/usr
       - -DCMAKE_C_COMPILER=clang
       - -DCMAKE_CXX_COMPILER=clang++
       - -DCMAKE_LINKER=lld
@@ -84,10 +148,10 @@ parts:
       - -DUSE_SYSTEM_SDL2=ON
     override-build: |
       craftctl default
-      sed -i 's|Name=Azahar|Name=AzaharPlus [NyKyu]|' $CRAFT_PART_INSTALL/usr/games/share/applications/org.azahar_emu.Azahar.desktop
-      sed -i 's|Icon=org.azahar_emu.Azahar|Icon=${SNAP}/usr/games/share/icons/hicolor/scalable/apps/org.azahar_emu.Azahar.svg|' $CRAFT_PART_INSTALL/usr/games/share/applications/org.azahar_emu.Azahar.desktop
-      sed -i 's|TryExec=azahar|TryExec=${SNAP}/usr/games/bin/azahar|' $CRAFT_PART_INSTALL/usr/games/share/applications/org.azahar_emu.Azahar.desktop
-      sed -i 's|Exec=azahar %f|Exec=${SNAP}/usr/games/bin/azahar %f|' $CRAFT_PART_INSTALL/usr/games/share/applications/org.azahar_emu.Azahar.desktop
+      sed -i 's|Name=Azahar|Name=AzaharPlus [NyKyu]|' $CRAFT_PART_INSTALL/usr/share/applications/org.azahar_emu.Azahar.desktop
+      sed -i 's|Icon=org.azahar_emu.Azahar|Icon=${SNAP}/usr/share/icons/hicolor/scalable/apps/org.azahar_emu.Azahar.svg|' $CRAFT_PART_INSTALL/usr/share/applications/org.azahar_emu.Azahar.desktop
+      sed -i 's|TryExec=azahar|TryExec=${SNAP}/usr/bin/azahar|' $CRAFT_PART_INSTALL/usr/share/applications/org.azahar_emu.Azahar.desktop
+      sed -i 's|Exec=azahar %f|Exec=${SNAP}/usr/bin/azahar %f|' $CRAFT_PART_INSTALL/usr/share/applications/org.azahar_emu.Azahar.desktop
 
   dependencies:
     after: [azaharplus]
@@ -98,3 +162,12 @@ parts:
     prime:
       - usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/libdecor-0.so*
       - usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/libSDL2-2.0.so*
+
+  command-chain:
+    after: [dependencies]
+    plugin: nil
+    source: ./launcher
+    override-build: |
+      mkdir -p $CRAFT_PART_INSTALL/snap
+      cp -r command-chain $CRAFT_PART_INSTALL/snap/
+      chmod 777 $CRAFT_PART_INSTALL/snap/command-chain/*
