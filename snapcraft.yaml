@@ -72,6 +72,7 @@ parts:
     source: https://github.com/AzaharPlus/AzaharPlus.git
     source-tag: AZAHAR_PLUS_2123_3_A
     build-packages:
+      - clang
       - libsdl2-dev
       - spirv-tools
     cmake-parameters:
