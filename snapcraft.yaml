@@ -75,6 +75,7 @@ parts:
       - clang
       - libsdl2-dev
       - spirv-tools
+      - libduktape207
     cmake-parameters:
       - -DCMAKE_BUILD_TYPE=Release
       - -DCMAKE_INSTALL_PREFIX=/usr
@@ -84,6 +85,7 @@ parts:
       - -DENABLE_QT_TRANSLATION=ON
       - -DUSE_DISCORD_PRESENCE=OFF
       - -DUSE_SYSTEM_SDL2=ON
+      - -DENABLE_OPENAL=OFF 
     override-build: |
       craftctl default
       sed -i 's|Name=Azahar|Name=AzaharPlus [Kyu]|' $CRAFT_PART_INSTALL/usr/share/applications/org.azahar_emu.Azahar.desktop
