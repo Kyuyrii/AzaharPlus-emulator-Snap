@@ -1,6 +1,6 @@
 name: azaharplus-emulator
 base: core24
-version: '2123.3-A'
+version: '2124.3-A'
 platforms:
   amd64:
     build-on: [amd64]
@@ -70,7 +70,7 @@ parts:
   azaharplus-app:
     plugin: cmake
     source: https://github.com/AzaharPlus/AzaharPlus.git
-    source-tag: AZAHAR_PLUS_2123_3_A
+    source-tag: AZAHAR_PLUS_2124_3_A
     build-packages:
       - clang
       - libsdl2-dev
